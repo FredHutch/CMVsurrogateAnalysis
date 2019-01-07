@@ -3,6 +3,14 @@
 ### 25AUG2014
 ### Modified by: Bhavesh Borate
 ### 30NOV2018
+### Reason for modification: Tweaked code to suit CMV surrogate analysis; also removed covariate adjustment.
+## Code to calculate bootstrap CI for pce 
+# 'bPCE' returns the pce estimate based on the observed data and the 95% bootstrapped CI
+# 'dataf' is the dataset
+# 'iter' is the number of bootstrap iterations. 
+# 'seed' is an integer for set.seed()
+# DIS56 is indicator for CMV disease
+# GCV indicates Treatment with Gancyclovir
 
 library(dplyr)
 
@@ -10,20 +18,12 @@ dataf <- read.csv("T:/vaccine/Bhavesh_Borate/CMV surrogate analysis/data/110318_
 colnames(dataf) <- toupper(colnames(dataf))
 dataf$wts <- 1
 pce.out <- list(0)
+dataf$surrogate <- dataf$VL.1
 
-## Code to calculate bootstrap CI for pce 
-# 'bPCE' returns the pce estimate based on the observed data and the 95% bootstrapped CI
-# 'dataf' is the dataset
-# 'iter' is the number of bootstrap iterations. 
-# 'seed' is an integer for set.seed()
-# DIS56 is indicator for CMV disease
-# VL.1 is surrogate 
-# GCV indicates Treatment with Gancyclovir
-
-# sz indicates whether VL.1 from Treatment or Placebo should be used
+# sz indicates whether surrogate from Treatment or Placebo should be used
 pY <- function(dat, fit, sz, gcv){
   datXV <- subset(dat, GCV==sz)
-  newdata <- data.frame(VL.1=datXV$VL.1, GCV=gcv)
+  newdata <- data.frame(surrogate=datXV$surrogate, GCV=gcv)
   return(predict(fit, newdata, type="response")) # vector 
 }
 
@@ -72,8 +72,7 @@ bPCE <- function(dataf, iter, seed=20181211){
   })
   
   # combine all PCE estimates:
-  bPCE <- drop(do.call(rbind, lapply(bPCElist,"[[","pce"))) %>% 
-    unlist(recursive = TRUE, use.names = TRUE)
+  bPCE <- drop(do.call(rbind, lapply(bPCElist,"[[","pce"))) 
 
   ci <- quantile(bPCE,probs=c(0.025,0.975))
   pce.est <- pce(dataf)$pce
@@ -89,10 +88,10 @@ bPCE <- function(dataf, iter, seed=20181211){
 
 pce <- function (dataf) {
   
-  dat <- dataf %>% filter(!is.na(VL.1))
+  dat <- dataf %>% filter(!is.na(surrogate))
   
   # Calculate PCE=proportion of captured treatment effect:
-  fit <- glm(DIS56 ~ VL.1 + GCV, data=dat, family="binomial")
+  fit <- glm(DIS56 ~ surrogate + GCV, data=dat, family="binomial")
   
   cpi <- sum(pY(dat, fit, sz=1, gcv=0)*dS(dat, gcv=1)) 
   cpii <- sum(pY(dat, fit, sz=0, gcv=0)*dS(dat, gcv=0)) 

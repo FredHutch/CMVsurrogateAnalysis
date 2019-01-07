@@ -98,7 +98,7 @@ pce <- function (dataf) {
   cpi <- sum(pY(dat, fit, sz=1, gcv=0)*dS(dat, gcv=1)) 
   cpii <- sum(pY(dat, fit, sz=0, gcv=0)*dS(dat, gcv=0)) 
   cp <- cpi - cpii
-  ncp <- ncp + sum((pY(dat, fit, sz=1, gcv=1) - pY(dat,fit,sz=1,gcv=0))*dS(dat, gcv=1)) 
+  ncp <- sum((pY(dat, fit, sz=1, gcv=1) - pY(dat,fit,sz=1,gcv=0))*dS(dat, gcv=1)) 
   
   pce <- cp^2/(cp^2 + ncp^2)
   list(pce=pce,cp=cp,ncp=ncp,nvc=sum(dat$DIS56[dat$GCV==1]),npc=sum(dat$DIS56[dat$GCV==0]))
@@ -108,7 +108,7 @@ pce <- function (dataf) {
 
 
 # To run the code
-bPCE(dataf, iter=10000, seed=20181211)
+bPCE(dataf, iter=1000, seed=20181211)
 
 
 

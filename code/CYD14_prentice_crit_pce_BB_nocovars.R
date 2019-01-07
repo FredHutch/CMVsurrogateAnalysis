@@ -6,7 +6,7 @@
 
 library(dplyr)
 
-dataf <- read.csv("../data/110318_weekly_vl_baseline.csv")
+dataf <- read.csv("T:/vaccine/Bhavesh_Borate/CMV surrogate analysis/data/110318_weekly_vl_baseline.csv")
 colnames(dataf) <- toupper(colnames(dataf))
 dataf$wts <- 1
 pce.out <- list(0)
@@ -15,7 +15,6 @@ pce.out <- list(0)
 # 'bPCE' returns the pce estimate based on the observed data and the 95% bootstrapped CI
 # 'dataf' is the dataset
 # 'iter' is the number of bootstrap iterations. 
-# NOTE: I have iterations to 11000 instead of 10000. This is because depending on the seed around 800ish or so throw errors due to the dataset being small. (filtering on covariates and GCV results in datasets with no records!!) I remove these bootstrapped datasets by catching them without breaking the loop.   
 # 'seed' is an integer for set.seed()
 # DIS56 is indicator for CMV disease
 # VL.1 is surrogate 
@@ -48,7 +47,7 @@ bPCE <- function(dataf, iter, seed=20181211){
     tryCatch({
       pce.out <- pce(bdata)$pce
     }, error=function(e){
-      write(paste("ERROR: ", e$message), "logfile.csv", append= TRUE)
+      write(paste("ERROR: ", e$message), "logfile.csv", append = TRUE)
       })
     
     return(list(pce=pce.out))

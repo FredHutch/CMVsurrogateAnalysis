@@ -20,6 +20,24 @@ pce.out <- list(0)
 # VL.1 is surrogate 
 # GCV indicates Treatment with Gancyclovir
 
+# sz indicates whether VL.1 from Treatment or Placebo should be used
+pY <- function(dat, fit, sz, gcv){
+  datXV <- subset(dat, GCV==sz)
+  newdata <- data.frame(VL.1=datXV$VL.1, GCV=gcv)
+  return(predict(fit, newdata, type="response")) # vector 
+}
+
+dS <- function(dat, gcv){
+  datVX <- subset(dat, GCV==gcv)
+  nvx <- sum(datVX$wts)
+  return(datVX$wts/nvx) # vector
+}
+
+# pX <- function(dataf){
+#   datafX <- subset(dataf, AGVH==agvh & CMV.D==cmv.d)
+#   propX <- nrow(datafX)/nrow(dataf)
+#   return(propX) # vector
+# }
 
 bPCE <- function(dataf, iter, seed=20181211){
   
@@ -76,25 +94,6 @@ pce <- function (dataf) {
   # Calculate PCE=proportion of captured treatment effect:
   fit <- glm(DIS56 ~ VL.1 + GCV, data=dat, family="binomial")
   
-  # sz indicates whether VL.1 from V or P should be used, agvh is 0 or 1, cmv.d is 0 or 1
-  pY <- function(dat, fit, sz, gcv){
-    datXV <- subset(dat, GCV==sz)
-    newdata <- data.frame(VL.1=datXV$VL.1, GCV=gcv)
-    return(predict(fit, newdata, type="response")) # vector 
-  }
-  
-  dS <- function(dat, gcv){
-    datVX <- subset(dat, GCV==gcv)
-    nvx <- sum(datVX$wts)
-    return(datVX$wts/nvx) # vector
-  }
-  
-  # pX <- function(dataf){
-  #   datafX <- subset(dataf, AGVH==agvh & CMV.D==cmv.d)
-  #   propX <- nrow(datafX)/nrow(dataf)
-  #   return(propX) # vector
-  # }
-  
   cpi <- sum(pY(dat, fit, sz=1, gcv=0)*dS(dat, gcv=1)) 
   cpii <- sum(pY(dat, fit, sz=0, gcv=0)*dS(dat, gcv=0)) 
   cp <- cpi - cpii
@@ -108,7 +107,7 @@ pce <- function (dataf) {
 
 
 # To run the code
-bPCE(dataf, iter=1000, seed=20181211)
+bPCE(dataf, iter=10000, seed=20181211)
 
 
 
